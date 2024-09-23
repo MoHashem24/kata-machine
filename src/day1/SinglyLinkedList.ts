@@ -110,7 +110,7 @@ export default class SinglyLinkedList<T> {
         if (!current) return undefined;
         prev!.next = current!.next;
         this.length--;
-        return current.value;
+        return current.value; //new value at that index
     }
 }
 class Node<T> {
