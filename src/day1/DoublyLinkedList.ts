@@ -1,8 +1,5 @@
 export default class DoublyLinkedList<T> {
     public length: number;
-    public value: any;
-    public prev: DoublyLinkedList<T>;
-    public next: DoublyLinkedList<T>;
 
     constructor() {}
 
