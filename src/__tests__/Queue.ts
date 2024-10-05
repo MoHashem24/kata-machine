@@ -2,7 +2,7 @@ import Queue from "@code/Queue";
 
 test("queue", function () {
     const list = new Queue<number>();
-
+    debugger;
     list.enqueue(5);
     list.enqueue(7);
     list.enqueue(9);
