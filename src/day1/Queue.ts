@@ -9,33 +9,25 @@ export default class Queue<T> {
 
     enqueue(item: T): void {
         const newNode = new Node<T>(item);
-        if (!this.length) this.head = newNode;
-        else if (this.length === 1) {
-            this.head!.next = newNode;
-            this.tail = newNode;
+        if (!this.length) {
+            // For the first element, both head and tail point to the same node
+            this.head = this.tail = newNode;
         } else {
-            const lastNode = this.tail;
-            lastNode!.next = newNode;
+            // Append to the tail and update tail
+            //next for tail is current last to keep link
+            this.tail!.next = newNode;
+            //now  last is new
             this.tail = newNode;
         }
-        // else if (this.length === 1) {
-        //     this.head!.next = newNode;
-        //     this.tail = newNode;
-        // } else {
-        //     // const oldHead = this.head;
-        //     // newNode.next = oldHead;
-        //     // this.head = newNode;
-        //     // on last node connect
-        //     // if (this.tail?.next) this.tail = this.tail!.next;
-        //     this.tail = newNode;
-        // }
         this.length++;
     }
     deque(): T | undefined {
         if (!this.length) return undefined;
-        let currentNodeValue = this.head?.value;
+        const currentNodeValue = this.head?.value;
         this.head = this.head!.next;
         this.length--;
+        //head is tail at start
+        if (!this.length) this.tail = this.head = undefined;
         return currentNodeValue;
     }
     peek(): T | undefined {
@@ -44,7 +36,7 @@ export default class Queue<T> {
 }
 class Node<T> {
     public value: T;
-    public next: Node<T> | undefined;
+    public next?: Node<T>;
     constructor(value: T) {
         this.value = value;
     }
