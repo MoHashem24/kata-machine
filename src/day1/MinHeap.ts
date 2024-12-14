@@ -8,7 +8,9 @@ export default class MinHeap {
     }
 
     insert(value: number): void {
-        this.heap.push(value);
+        // this.heap.push(value);
+        //to keep without use of stack
+        this.heap[this.length] = value;
         this.length++;
         this._bubbleUp(this.length - 1);
     }
@@ -17,14 +19,16 @@ export default class MinHeap {
         if (this.length === 0) {
             return -1;
         }
-        if (this.length === 1) {
-            this.length = 0;
-            this.heap.pop();
+
+        this.length--;
+        if (this.length === 0) {
+            // this.heap.pop();
+            this.heap = [];
             return out;
         }
-        this.length--;
-        this._swap(0, this.length);
-        this.heap.pop();
+        // this._swap(0, this.length); need this.length -1 as out of range now  and you can pop
+        this.heap[0] = this.heap[this.length];// this works but swap no 
+        // this.heap.pop();
         this._heapifyDown(0);
         return out;
     }
