@@ -1,3 +1,5 @@
+import MinHeapGraph from "@code/MinHeapGraph";
+
 export const list1: WeightedAdjacencyList = [];
 
 //      (1) --- (4) ---- (5)
@@ -84,3 +86,12 @@ export const matrix2: WeightedAdjacencyMatrix = [
     [0, 0, 18, 0, 0, 0, 1],
     [0, 0, 0,  1, 0, 0, 1],
 ];
+function convertGraphListToMinHeap(graph:WeightedAdjacencyList):MinHeapGraph{
+    //list1[0].forEach(edge => heap.insert(edge));
+    const heap = new MinHeapGraph();
+    for (let i = 0; i < graph.length; i++) {
+        graph[i].forEach(edge => heap.insert(edge));
+    }
+    return heap;
+}
+export const MinHeapGraph1 =  convertGraphListToMinHeap(list1);
