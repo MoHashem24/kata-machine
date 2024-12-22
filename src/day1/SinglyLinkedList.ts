@@ -53,6 +53,33 @@ export default class SinglyLinkedList<T> {
         }
         this.length++;
     }
+    removeObject(item: T, isEqual: (v1: T, v2: T) => boolean): T | undefined {
+        // get the item
+        // if the item is the head , remove it
+        //if tail then and change nextnode for node beofre it to null
+        //in middle then change nextnode for next node of that element
+
+        if (!this.length) return undefined;
+        if (isEqual(this.head!.value, item)) {
+            const removedValue = this.head!.value;
+            this.head = this.head!.next;
+            this.length--;
+            return removedValue;
+        }
+        let current = this.head;
+        let prev: Node<T> | null = null;
+        //current exist but not same value or length
+        while (current && !isEqual(current.value, item)) {
+            prev = current;
+            current = current.next;
+        }
+
+        if (!current) return undefined;
+
+        prev!.next = current.next;
+        this.length--;
+        return current.value;
+    }
     remove(item: T): T | undefined {
         // get the item
         // if the item is the head , remove it
@@ -87,6 +114,14 @@ export default class SinglyLinkedList<T> {
             current = current!.next;
         }
         return current!.value;
+    }
+    getObject(value: T, isEqual: (v1: T, v2: T) => boolean): T | undefined {
+        if (!value) return undefined;
+        let current = this.head;
+        while (current && !isEqual(value, current.value)) {
+            current = current!.next;
+        }
+        return current?.value;
     }
 
     removeAt(idx: number): T | undefined {
