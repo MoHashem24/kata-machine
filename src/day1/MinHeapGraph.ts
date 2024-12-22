@@ -41,6 +41,8 @@ export default class MinHeapGraph {
     private _getParent(index: number): number {
         return Math.floor((index - 1) / 2);
     }
+//     Accidental Correctness: The heap operations might have accidentally maintained the correct order due to the specific structure and values of your input data. This is not reliable and can fail with different data.
+// Implicit Conversion: JavaScript might have implicitly converted the objects to strings or another type during comparison, leading to unexpected but seemingly correct behavior
     private _bubbleUp(index: number): void {
         if (index === 0) {
             return;
@@ -49,7 +51,7 @@ export default class MinHeapGraph {
         if (parentIndex < 0 || !this.heap[parentIndex] || !this.heap[index])
             return;
 
-        if (this.heap[index] < this.heap[parentIndex]) {
+        if (this.heap[index].weight < this.heap[parentIndex].weight) {
             this._swap(index, parentIndex);
             this._bubbleUp(parentIndex);
         }
@@ -70,21 +72,21 @@ export default class MinHeapGraph {
         }
         const rightChildIndex = this._getRightChild(index);
         if (rightChildIndex >= this.length) {
-            if (this.heap[leftChildIndex] < this.heap[index]) {
+            if (this.heap[leftChildIndex].weight < this.heap[index].weight) {
                 this._swap(index, leftChildIndex);
                 this._heapifyDown(leftChildIndex);
             }
         }
         if (
-            this.heap[leftChildIndex] < this.heap[rightChildIndex] &&
-            this.heap[leftChildIndex] < this.heap[index]
+            this.heap[leftChildIndex].weight < this.heap[rightChildIndex].weight &&
+            this.heap[leftChildIndex].weight < this.heap[index].weight
         ) {
             this._swap(index, leftChildIndex);
             this._heapifyDown(leftChildIndex);
         }
         if (
-            this.heap[rightChildIndex] < this.heap[leftChildIndex] &&
-            this.heap[rightChildIndex] < this.heap[index]
+            this.heap[rightChildIndex].weight < this.heap[leftChildIndex].weight &&
+            this.heap[rightChildIndex].weight < this.heap[index].weight
         ) {
             this._swap(index, rightChildIndex);
             this._heapifyDown(rightChildIndex);
