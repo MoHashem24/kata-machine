@@ -50,21 +50,23 @@ export default class Stack<T> {
 
     push(item: T): void {
         const newNode = new Node<T>(item);
-        if(!this.length) {
+        if (!this.length) {
             this.head = newNode;
+            this.length++;
+            return;
         }
-        else {
-            newNode.next = this.head;
-            this.head = newNode;
-        }
+        // else {
+        newNode.next = this.head;
+        this.head = newNode;
         this.length++;
+        // }
     }
     pop(): T | undefined {
-        if(!this.length) return undefined;
+        if (!this.length) return undefined;
         const out = this.head?.value;
         this.head = this.head!.next;
         this.length--;
-        if(!this.length) this.head = undefined;
+        if (!this.length) this.head = undefined;
         return out;
     }
     peek(): T | undefined {
