@@ -52,13 +52,14 @@ export default class Queue<T> {
 
     enqueue(item: T): void {
         const newNode = new Node<T>(item);
-         if (!this.length) {
-            this.tail = newNode;
+           if (!this.length) {
             this.head = newNode;
+            this.tail = newNode;
+        } else {
+            this.tail!.next = newNode;
+            this.tail = newNode;
         }
         this.length++;
-        this.tail!.next = newNode;
-        this.tail = newNode;
        
     }
     deque(): T | undefined {
