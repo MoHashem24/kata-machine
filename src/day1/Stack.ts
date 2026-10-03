@@ -35,7 +35,7 @@
 // }
 class Node<T> {
     public value: T;
-    public next?: Node<T>;
+    public prev?: Node<T>;//we called it prev as we are going from right to left in stack
     constructor(value: T) {
         this.value = value;
     }
@@ -56,7 +56,7 @@ export default class Stack<T> {
             return;
         }
         // else {
-        newNode.next = this.head;
+        newNode.prev = this.head;
         this.head = newNode;
         this.length++;
         // }
@@ -64,7 +64,7 @@ export default class Stack<T> {
     pop(): T | undefined {
         if (!this.length) return undefined;
         const out = this.head?.value;
-        this.head = this.head!.next;
+        this.head = this.head!.prev;
         this.length--;
         if (!this.length) this.head = undefined;
         return out;
