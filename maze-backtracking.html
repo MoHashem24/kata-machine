@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why the maze solver needs pop()</title>
+<style>
+:root{
+  --bg:#f4f6f9;--card:#fff;--ink:#17202b;--soft:#5b6675;--line:#dde2ea;
+  --open:#eef1f5;--wall:#8b95a3;
+  --ok-bg:#d3f0e8;--ok-ink:#0b5d4e;--ok-line:#7cc9b3;
+  --bad-bg:#fbdcdc;--bad-ink:#9b1c1c;--bad-line:#eba0a0;
+  --focus:#2563eb;--code-bg:#101826;--code-ink:#d6deeb;--hl:#2f5aa8;
+}
+@media (prefers-color-scheme:dark){
+:root{
+  --bg:#0f141b;--card:#171e28;--ink:#e6ebf2;--soft:#9aa5b5;--line:#2a3441;
+  --open:#1f2733;--wall:#5a6575;
+  --ok-bg:#0f3d34;--ok-ink:#8fe3cc;--ok-line:#1f7a66;
+  --bad-bg:#4a1d1f;--bad-ink:#f4a8a8;--bad-line:#8a3a3d;
+  --focus:#6b9bff;--code-bg:#0a0f16;--hl:#2f5aa8;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;padding:32px 20px 64px}
+main{max-width:980px;margin:0 auto}
+h1{font-size:28px;line-height:1.2;margin:0 0 8px;font-weight:600}
+h2{font-size:18px;margin:0;font-weight:600}
+p{margin:0}
+.lead{color:var(--soft);max-width:62ch;margin-bottom:28px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--soft);margin-bottom:20px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.card .sub{font-size:14px;color:var(--soft)}
+.board{display:grid;gap:3px;justify-content:start}
+.c{width:32px;height:32px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:var(--open);color:var(--soft);transition:background .2s,color .2s}
+.c.w{background:var(--wall);opacity:.5}
+.c.p{background:var(--ok-bg);color:var(--ok-ink);box-shadow:inset 0 0 0 1px var(--ok-line)}
+.c.d{background:var(--bad-bg);color:var(--bad-ink);box-shadow:inset 0 0 0 1px var(--bad-line)}
+.c.e{outline:2px dashed var(--wall);outline-offset:-2px}
+.c.cur{box-shadow:0 0 0 2px var(--focus)}
+.cap{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:3em}
+.res{font-size:13px;color:var(--soft)}
+.row{display:flex;gap:8px;margin-top:auto}
+button{font:inherit;font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button:hover{background:var(--open)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button.main{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.codewrap{margin-top:28px}
+.codewrap h2{margin-bottom:10px}
+pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:14px 0;overflow-x:auto;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+pre span{display:block;min-height:1.65em;padding:0 18px;white-space:pre;border-left:3px solid transparent}
+pre span.on{background:var(--hl);border-left-color:var(--focus)}
+.note{font-size:14px;color:var(--soft);margin-top:10px;max-width:70ch}
+@media (prefers-reduced-motion:reduce){.c{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why the maze solver needs pop()</h1>
+<p class="lead">The solver tries left, right, up, then down. Every cell it enters is pushed onto <code>path</code>. If all four directions fail, that cell is a dead end, so it gets popped. Step through the three cases below.</p>
+
+<div class="legend">
+<span><i style="background:var(--ok-bg);box-shadow:inset 0 0 0 1px var(--ok-line)"></i>in path (number = order)</span>
+<span><i style="background:var(--bad-bg);box-shadow:inset 0 0 0 1px var(--bad-line)"></i>popped, dead end</span>
+<span><i style="background:var(--wall);opacity:.5"></i>wall</span>
+<span>S start, E end</span>
+</div>
+
+<div class="grid" id="root"></div>
+
+<div class="codewrap">
+<h2>The code, highlighted as it runs</h2>
+<pre id="code"></pre>
+<p class="note">Highlight follows the last step of whichever panel you touched last. Pushes highlight <code>path.push</code>, pops highlight <code>path.pop</code>.</p>
+</div>
+</main>
+
+<script>
+const SRC=[
+"function walk(curr: Point): boolean {",
+"  if (out of bounds) return false;",
+"  if (seen[curr.y][curr.x]) return false;",
+"  seen[curr.y][curr.x] = true;",
+"  if (maze[curr.y][curr.x] === wall) return false;",
+"",
+"  path.push(curr);",
+"  if (curr is end) return true;",
+"",
+"  if (walk(left))  return true;",
+"  if (walk(right)) return true;",
+"  if (walk(up))    return true;",
+"  if (walk(down))  return true;",
+"",
+"  path.pop();   // all four failed: dead end",
+"  return false;",
+"}"
+];
+const codeEl=document.getElementById('code');
+codeEl.innerHTML=SRC.map(l=>'<span>'+l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>').join('');
+function hl(n){[...codeEl.children].forEach((s,i)=>s.classList.toggle('on',i===n));}
+
+const defs=[
+{t:'Needs pop',s:'Left is a trap. Backtrack, then go right.',rows:['#######','#..#..#','#.S..E#','#######']},
+{t:'Straight to the end',s:'No dead ends, so pop never runs.',rows:['#####','#S..#','###.#','#E..#','#####']},
+{t:'Dead end everywhere',s:'E is walled off. Every push is popped, path ends empty.',rows:['#######','#..#..#','#.S.#E#','#######']}
+];
+
+function build(d){
+ const H=d.rows.length,W=d.rows[0].length;let S,E;
+ d.rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch==='S')S={x,y};if(ch==='E')E={x,y};}));
+ const seen=d.rows.map(r=>new Array(W).fill(false)),ev=[];
+ function walk(c){
+  if(c.y<0||c.y>=H||c.x<0||c.x>=W)return false;
+  if(seen[c.y][c.x])return false;
+  seen[c.y][c.x]=true;
+  if(d.rows[c.y][c.x]==='#')return false;
+  ev.push({k:'push',x:c.x,y:c.y});
+  if(c.x===E.x&&c.y===E.y)return true;
+  if(walk({x:c.x-1,y:c.y}))return true;
+  if(walk({x:c.x+1,y:c.y}))return true;
+  if(walk({x:c.x,y:c.y-1}))return true;
+  if(walk({x:c.x,y:c.y+1}))return true;
+  ev.push({k:'pop',x:c.x,y:c.y});
+  return false;
+ }
+ const found=walk(S);
+ return {d,H,W,ev,found,i:0,timer:null};
+}
+function state(m){
+ const path=[],dead=new Set();
+ for(let j=0;j<m.i;j++){const e=m.ev[j];
+  if(e.k==='push')path.push(e);else{path.pop();dead.add(e.x+','+e.y);}}
+ return {path,dead};
+}
+function render(m){
+ const {path,dead}=state(m);
+ const pi={};path.forEach((p,n)=>pi[p.x+','+p.y]=n+1);
+ const last=m.i>0?m.ev[m.i-1]:null;
+ let h='';
+ for(let y=0;y<m.H;y++)for(let x=0;x<m.W;x++){
+  const k=x+','+y,ch=m.d.rows[y][x];let cl='c',tx='';
+  if(ch==='#')cl+=' w';
+  else if(pi[k]){cl+=' p';tx=pi[k];}
+  else if(dead.has(k)){cl+=' d';tx='\u00d7';}
+  if(ch==='S'&&!pi[k]&&!dead.has(k))tx='S';
+  if(ch==='E'){cl+=' e';if(!pi[k])tx='E';}
+  if(last&&last.k==='push'&&last.x===x&&last.y===y)cl+=' cur';
+  h+='<div class="'+cl+'">'+tx+'</div>';
+ }
+ m.grid.innerHTML=h;
+ m.grid.style.gridTemplateColumns='repeat('+m.W+',32px)';
+ let cap='Press Step to start.';
+ if(last)cap=last.k==='push'?'push ('+last.x+','+last.y+')':'all 4 failed, pop ('+last.x+','+last.y+')';
+ const done=m.i>=m.ev.length;
+ if(done&&m.i>0)cap=(m.found?'Reached E. ':'No route. ')+cap;
+ m.cap.textContent=cap;
+ m.res.textContent='path length: '+path.length+(done&&m.i>0?(m.found?' (correct route)':' (empty result)'):'');
+ m.play.textContent=m.timer?'Pause':'Play';
+ hl(last?(last.k==='push'?6:14):-1);
+}
+function stop(m){if(m.timer){clearInterval(m.timer);m.timer=null;}}
+function step(m){if(m.i<m.ev.length)m.i++;else stop(m);render(m);}
+
+const root=document.getElementById('root');
+defs.forEach(d=>{
+ const m=build(d);
+ const el=document.createElement('section');el.className='card';
+ el.innerHTML='<h2>'+d.t+'</h2><p class="sub">'+d.s+'</p><div class="board"></div><p class="cap"></p><p class="res"></p><div class="row"><button class="st">Step</button><button class="pl main">Play</button><button class="rs">Reset</button></div>';
+ m.grid=el.querySelector('.board');m.cap=el.querySelector('.cap');m.res=el.querySelector('.res');m.play=el.querySelector('.pl');
+ el.querySelector('.st').onclick=()=>{stop(m);step(m);};
+ m.play.onclick=()=>{if(m.timer){stop(m);render(m);return;}if(m.i>=m.ev.length)m.i=0;m.timer=setInterval(()=>step(m),500);render(m);};
+ el.querySelector('.rs').onclick=()=>{stop(m);m.i=0;render(m);};
+ root.appendChild(el);render(m);
+});
+hl(-1);
+</script>
+</body>
+</html>
