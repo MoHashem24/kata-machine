@@ -1,9 +1,22 @@
-function walk(head: BinaryNode<number>, paths: number[]): number[] {
-    if (head === null) return [];
+// function walk(head: BinaryNode<number>, paths: number[]): number[] {
+//     if (head === null) return [];
 
-    head.left && walk(head.left, paths);
-    paths.push(head.value);
-    head.right && walk(head.right, paths);
+//     head.left && walk(head.left, paths);
+//     paths.push(head.value);
+//     head.right && walk(head.right, paths);
+
+//     return paths;
+// }
+// export default function in_order_search(head: BinaryNode<number>): number[] {
+//     return walk(head, []);
+// }
+function walk(node: BinaryNode<number> | null, paths: number[]) {
+    if (node === null) return paths; //leave
+   
+
+    walk(node.left, paths);
+     paths.push(node.value);
+    walk(node.right, paths);
 
     return paths;
 }
