@@ -18,7 +18,7 @@ function walk(head: BinaryNode<number>|null, needle: number): boolean{
 
     // return walk(head.left,needle) || walk(head.right,needle);//normal DFS
     //ON BST
-    if( needle > head.value) return walk(head.right,needle);
+    if(  head.value < needle) return walk(head.right,needle);
     return walk(head.left,needle)
 }
 export default function dfs(head: BinaryNode<number>, needle: number): boolean {
